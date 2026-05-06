@@ -273,10 +273,22 @@ def post_message(workspace_id, channel_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    body = request.form['body']
-    
     conn = get_connection()
     cur = conn.cursor()
+    
+    # Check user is a member of the channel
+    cur.execute("""
+        SELECT 1 FROM Channel_Members
+        WHERE channel_id = %s AND user_id = %s
+    """, (channel_id, session['user_id']))
+    
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return "Access denied", 403
+    
+    body = request.form['body']
+    
     try:
         cur.execute(
             "INSERT INTO Messages (channel_id, user_id, body) VALUES (%s, %s, %s)",
@@ -330,17 +342,36 @@ def join_channel(workspace_id, channel_id):
     
     conn = get_connection()
     cur = conn.cursor()
+    
+    # Check user is a member of the workspace first
+    cur.execute("""
+        SELECT 1 FROM Workspace_Members
+        WHERE workspace_id = %s AND user_id = %s
+    """, (workspace_id, session['user_id']))
+    
+    if not cur.fetchone():
+        cur.close()
+        conn.close()
+        return "Access denied - not a workspace member", 403
+    
+    # Check channel is public
+    cur.execute("""
+        SELECT type FROM Channels 
+        WHERE channel_id = %s AND workspace_id = %s
+    """, (channel_id, workspace_id))
+    channel = cur.fetchone()
+    
+    if not channel or channel[0] != 'public':
+        cur.close()
+        conn.close()
+        return "Access denied - channel is not public", 403
+    
     try:
-        # Check channel is public
-        cur.execute("SELECT type FROM Channels WHERE channel_id = %s", (channel_id,))
-        channel = cur.fetchone()
-        
-        if channel and channel[0] == 'public':
-            cur.execute(
-                "INSERT INTO Channel_Members (channel_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                (channel_id, session['user_id'])
-            )
-            conn.commit()
+        cur.execute(
+            "INSERT INTO Channel_Members (channel_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            (channel_id, session['user_id'])
+        )
+        conn.commit()
     except Exception as e:
         conn.rollback()
     finally:
@@ -511,6 +542,153 @@ def profile():
     conn.close()
     
     return render_template('profile.html', user=user, success=success, error=error)
+
+# Promote user to admin
+@app.route('/workspace/<int:workspace_id>/promote', methods=['GET', 'POST'])
+def promote_member(workspace_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Check user is admin
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT role FROM Workspace_Members
+        WHERE workspace_id = %s AND user_id = %s
+    """, (workspace_id, session['user_id']))
+    member = cur.fetchone()
+    
+    if not member or member[0] != 'admin':
+        cur.close()
+        conn.close()
+        return "Only admins can promote members", 403
+    
+    # Get workspace name
+    cur.execute("SELECT name FROM Workspaces WHERE workspace_id = %s", (workspace_id,))
+    workspace = cur.fetchone()
+    
+    # Get all non-admin members
+    cur.execute("""
+        SELECT u.user_id, u.username FROM Users u
+        JOIN Workspace_Members wm ON wm.user_id = u.user_id
+        WHERE wm.workspace_id = %s AND wm.role = 'member'
+    """, (workspace_id,))
+    members = cur.fetchall()
+    
+    error = None
+    success = None
+    
+    if request.method == 'POST':
+        promote_user_id = request.form['user_id']
+        try:
+            cur.execute("""
+                UPDATE Workspace_Members
+                SET role = 'admin'
+                WHERE workspace_id = %s AND user_id = %s
+            """, (workspace_id, promote_user_id))
+            conn.commit()
+            success = 'User promoted to admin!'
+            # Refresh members list
+            cur.execute("""
+                SELECT u.user_id, u.username FROM Users u
+                JOIN Workspace_Members wm ON wm.user_id = u.user_id
+                WHERE wm.workspace_id = %s AND wm.role = 'member'
+            """, (workspace_id,))
+            members = cur.fetchall()
+        except Exception as e:
+            conn.rollback()
+            error = 'Could not promote user'
+    
+    cur.close()
+    conn.close()
+    
+    return render_template('promote_member.html',
+                         workspace=workspace,
+                         workspace_id=workspace_id,
+                         members=members,
+                         error=error,
+                         success=success)
+
+# Remove workspace member
+@app.route('/workspace/<int:workspace_id>/remove', methods=['GET', 'POST'])
+def remove_member(workspace_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Check user is admin
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT role FROM Workspace_Members
+        WHERE workspace_id = %s AND user_id = %s
+    """, (workspace_id, session['user_id']))
+    member = cur.fetchone()
+    
+    if not member or member[0] != 'admin':
+        cur.close()
+        conn.close()
+        return "Only admins can remove members", 403
+    
+    # Get workspace name
+    cur.execute("SELECT name, creator_id FROM Workspaces WHERE workspace_id = %s", (workspace_id,))
+    workspace = cur.fetchone()
+    
+    # Get all members except current user and creator
+    cur.execute("""
+        SELECT u.user_id, u.username, wm.role FROM Users u
+        JOIN Workspace_Members wm ON wm.user_id = u.user_id
+        WHERE wm.workspace_id = %s 
+        AND u.user_id != %s
+        AND u.user_id != %s
+    """, (workspace_id, session['user_id'], workspace[1]))
+    members = cur.fetchall()
+    
+    error = None
+    success = None
+    
+    if request.method == 'POST':
+        remove_user_id = request.form['user_id']
+        try:
+            # Remove from channel members first
+            cur.execute("""
+                DELETE FROM Channel_Members
+                WHERE user_id = %s
+                AND channel_id IN (
+                    SELECT channel_id FROM Channels
+                    WHERE workspace_id = %s
+                )
+            """, (remove_user_id, workspace_id))
+            
+            # Remove from workspace
+            cur.execute("""
+                DELETE FROM Workspace_Members
+                WHERE workspace_id = %s AND user_id = %s
+            """, (workspace_id, remove_user_id))
+            
+            conn.commit()
+            success = 'Member removed successfully!'
+            # Refresh members list
+            cur.execute("""
+                SELECT u.user_id, u.username, wm.role FROM Users u
+                JOIN Workspace_Members wm ON wm.user_id = u.user_id
+                WHERE wm.workspace_id = %s
+                AND u.user_id != %s
+                AND u.user_id != %s
+            """, (workspace_id, session['user_id'], workspace[1]))
+            members = cur.fetchall()
+        except Exception as e:
+            conn.rollback()
+            error = 'Could not remove member'
+    
+    cur.close()
+    conn.close()
+    
+    return render_template('remove_member.html',
+                         workspace=workspace,
+                         workspace_id=workspace_id,
+                         members=members,
+                         error=error,
+                         success=success)
 
 if __name__ == '__main__':
     app.run(debug=True)
