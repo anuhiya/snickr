@@ -58,7 +58,7 @@ snickr/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/snickr.git
+git clone https://github.com/anuhiya/snickr.git
 cd snickr
 ```
 
