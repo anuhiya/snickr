@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snickr - Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #4a154b;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { margin: 0; font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .content {
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .search-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .search-bar form {
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .search-bar button {
+            background-color: #4a154b;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .search-bar button:hover { background-color: #611f69; }
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .result-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .result-meta .location {
+            color: #4a154b;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .result-meta .time {
+            color: #999;
+            font-size: 12px;
+        }
+        .result-author {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .result-body {
+            color: #333;
+            line-height: 1.5;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .empty {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+        }
+        h2 { color: #4a154b; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Snickr</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2>Search Messages</h2>
+
+        <div class="search-bar">
+            <form method="GET">
+                <input type="text" name="q" placeholder="Search for messages..." 
+                       value="{{ keyword }}" required/>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        {% if keyword %}
+            {% if results %}
+                <p style="color:#666;">Found {{ results|length }} result(s) for "<strong>{{ keyword }}</strong>"</p>
+                {% for r in results %}
+                <div class="result-card">
+                    <div class="result-meta">
+                        <span class="location">{{ r[1] }} / #{{ r[2] }}</span>
+                        <span class="time">{{ r[5].strftime('%b %d, %Y %H:%M') }}</span>
+                    </div>
+                    <div class="result-author">Posted by {{ r[3] }}</div>
+                    <div class="result-body">{{ r[4] }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">
+                    <p>No messages found for "<strong>{{ keyword }}</strong>"</p>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>

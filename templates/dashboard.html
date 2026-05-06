@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snickr - Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #4a154b;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        .content {
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background-color: #4a154b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #611f69;
+        }
+        .workspace-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .workspace-card h3 {
+            margin: 0;
+            color: #4a154b;
+        }
+        .workspace-card p {
+            margin: 5px 0 0 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .badge {
+            background-color: #f0e6f0;
+            color: #4a154b;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .empty {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Snickr</h1>
+        <div>
+            <span>Welcome, {{ session['username'] }}</span>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="section-header">
+            <h2>Your Workspaces</h2>
+            <a href="/workspace/create" class="btn">+ New Workspace</a>
+        </div>
+
+        {% if workspaces %}
+            {% for ws in workspaces %}
+            <div class="workspace-card">
+                <div>
+                    <h3>{{ ws[1] }}</h3>
+                    <p>{{ ws[2] or 'No description' }}</p>
+                </div>
+                <div>
+                    <span class="badge">{{ ws[3] }}</span>
+                    <a href="/workspace/{{ ws[0] }}" class="btn" style="margin-left:10px;">Open</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <p>You have no workspaces yet. Create one to get started!</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

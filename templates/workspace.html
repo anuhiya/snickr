@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snickr - Workspace</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #4a154b;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { margin: 0; font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .content {
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background-color: #4a154b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn:hover { background-color: #611f69; }
+        .btn-green {
+            background-color: #2eb67d;
+            color: white;
+            padding: 6px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .channel-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .channel-card h3 { margin: 0; color: #4a154b; }
+        .channel-card p { margin: 5px 0 0 0; color: #666; font-size: 14px; }
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .badge-public { background-color: #e3f9e5; color: #2eb67d; }
+        .badge-private { background-color: #fce8e8; color: #e01e5a; }
+        .badge-direct { background-color: #e8f0fe; color: #1d6ef9; }
+        .empty {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+        }
+        .workspace-title { color: #4a154b; }
+        .back { margin-bottom: 20px; }
+        .back a { color: #4a154b; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Snickr</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/search">Search</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+    <div class="content">
+        <div class="back"><a href="/dashboard">← Back to Dashboard</a></div>
+        <div class="section-header">
+            <div>
+                <h2 class="workspace-title">{{ workspace[0] }}</h2>
+                <p style="color:#666; margin:0;">{{ workspace[1] or 'No description' }}</p>
+            </div>
+            <a href="/workspace/{{ workspace_id }}/channel/create" class="btn">+ New Channel</a>
+            <a href="/workspace/{{ workspace_id }}/invite" class="btn" style="margin-left:10px;">+ Invite User</a>
+        </div>
+
+        {% if channels %}
+            {% for ch in channels %}
+            <div class="channel-card">
+                <div>
+                    <h3># {{ ch[1] }}</h3>
+                    <p>{{ ch[2] }} channel</p>
+                </div>
+                <div>
+                    <span class="badge badge-{{ ch[2] }}">{{ ch[2] }}</span>
+                    {% if ch[3] %}
+                        <a href="/workspace/{{ workspace_id }}/channel/{{ ch[0] }}" class="btn">Open</a>
+                    {% else %}
+                        <form method="POST" action="/workspace/{{ workspace_id }}/channel/{{ ch[0] }}/join" style="display:inline;">
+                            <button type="submit" class="btn-green">Join</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <p>No channels yet. Create one to get started!</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

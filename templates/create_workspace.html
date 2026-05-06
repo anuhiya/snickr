@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snickr - Create Workspace</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #4a154b;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { margin: 0; font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .content {
+            padding: 30px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h2 { color: #4a154b; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        textarea { height: 100px; }
+        button {
+            background-color: #4a154b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #611f69; }
+        .error { color: red; font-size: 14px; }
+        .back { margin-bottom: 20px; }
+        .back a { color: #4a154b; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Snickr</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+    <div class="content">
+        <div class="back"><a href="/dashboard">← Back to Dashboard</a></div>
+        <div class="card">
+            <h2>Create a New Workspace</h2>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            <form method="POST">
+                <input type="text" name="name" placeholder="Workspace name" required/>
+                <textarea name="description" placeholder="Description (optional)"></textarea>
+                <button type="submit">Create Workspace</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

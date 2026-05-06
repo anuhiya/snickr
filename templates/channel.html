@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snickr - Channel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .navbar {
+            background-color: #4a154b;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { margin: 0; font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .channel-header {
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .channel-header h2 { margin: 0; color: #4a154b; }
+        .channel-header a { color: #4a154b; text-decoration: none; }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 30px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        .message {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .message-header .username {
+            font-weight: bold;
+            color: #4a154b;
+        }
+        .message-header .time {
+            color: #999;
+            font-size: 12px;
+        }
+        .message-body {
+            color: #333;
+            line-height: 1.5;
+        }
+        .message-form {
+            background: white;
+            padding: 20px 30px;
+            border-top: 1px solid #ddd;
+        }
+        .message-form form {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+        }
+        .message-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .message-form button {
+            background-color: #4a154b;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .message-form button:hover { background-color: #611f69; }
+        .empty {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Snickr</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/profile">Profile</a>
+            <a href="/search">Search</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="channel-header">
+        <h2># {{ channel[0] }}</h2>
+        <a href="/workspace/{{ workspace_id }}">← Back to Workspace</a>
+        <a href="/workspace/{{ workspace_id }}/channel/{{ channel_id }}/invite" style="color:#4a154b; margin-left:20px;">+ Invite User</a>
+    </div>
+
+    <div class="messages">
+        {% if messages %}
+            {% for msg in messages %}
+            <div class="message">
+                <div class="message-header">
+                    <span class="username">{{ msg[1] }}</span>
+                    <span class="time">{{ msg[3].strftime('%b %d, %Y %H:%M') }}</span>
+                </div>
+                <div class="message-body">{{ msg[2] }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <p>No messages yet. Be the first to say something!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="message-form">
+        <form method="POST" action="/workspace/{{ workspace_id }}/channel/{{ channel_id }}/post">
+            <input type="text" name="body" placeholder="Type a message..." required/>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</body>
+</html>
