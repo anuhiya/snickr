@@ -1,6 +1,6 @@
 # Snickr
 
-A web-based team collaboration system similar to Slack, built for CS6083 - Principles of Database Systems at NYU Tandon School of Engineering.
+A web-based team collaboration system similar to Slack.
 
 ## About
 
@@ -116,9 +116,4 @@ The database consists of 7 tables:
 | dave | password123 | Member: CS Department |
 | eve | password123 | Member: PhD Students |
 
-## Course Information
 
-- **Course:** CS6083 - Principles of Database Systems
-- **Semester:** Spring 2026
-- **University:** NYU Tandon School of Engineering
-- **Students:** Anuhiya Surekha Suresh Babu (as21237), Pavan Veera (pv2337)
