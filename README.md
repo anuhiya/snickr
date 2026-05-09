@@ -64,19 +64,17 @@ cd snickr
 
 2. Install dependencies:
 ```bash
-pip install flask psycopg2-binary flask-session
+pip install flask psycopg2-binary flask-session python-dotenv
 ```
 
-3. Update `db.py` with your Supabase credentials:
-```python
-conn = psycopg2.connect(
-    host="your-supabase-host",
-    database="postgres",
-    user="postgres",
-    password="your-password",
-    port=5432,
-    sslmode="require"
-)
+3. Create a `.env` file in the project root:
+
+```env
+DB_HOST=your-supabase-host
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=your-password
+DB_PORT=5432
 ```
 
 4. Run the application:
