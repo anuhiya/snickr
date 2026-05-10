@@ -386,7 +386,6 @@ def invite_to_workspace(workspace_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    # Check user is admin
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -400,8 +399,8 @@ def invite_to_workspace(workspace_id):
         conn.close()
         return "Only admins can invite users", 403
     
-    # Get workspace name
-    cur.execute("SELECT name FROM Workspaces WHERE workspace_id = %s", (workspace_id,))
+    cur.execute("SELECT name FROM Workspaces WHERE workspace_id = %s", 
+               (workspace_id,))
     workspace = cur.fetchone()
     
     error = None
@@ -411,13 +410,15 @@ def invite_to_workspace(workspace_id):
         username = request.form['username']
         
         # Find the user
-        cur.execute("SELECT user_id FROM Users WHERE username = %s", (username,))
+        cur.execute("SELECT user_id FROM Users WHERE username = %s", 
+                   (username,))
         invitee = cur.fetchone()
         
         if not invitee:
             error = f'User "{username}" not found'
         else:
             invitee_id = invitee[0]
+            
             # Check if already a member
             cur.execute("""
                 SELECT 1 FROM Workspace_Members
@@ -428,23 +429,19 @@ def invite_to_workspace(workspace_id):
                 error = f'User "{username}" is already a member'
             else:
                 try:
+    # Insert workspace membership directly
                     cur.execute("""
-                        INSERT INTO Invitations (inviter_id, invitee_id, workspace_id, status)
-                        VALUES (%s, %s, %s, 'accepted')
-                    """, (session['user_id'], invitee_id, workspace_id))
-                    
-                    cur.execute("""
-                        INSERT INTO Workspace_Members (workspace_id, user_id, role)
+                        INSERT INTO Workspace_Members 
+                        (workspace_id, user_id, role)
                         VALUES (%s, %s, 'member')
-                        ON CONFLICT DO NOTHING
                     """, (workspace_id, invitee_id))
-                    
+    
                     conn.commit()
                     success = f'User "{username}" added to workspace!'
                 except Exception as e:
                     conn.rollback()
-                    error = 'Could not invite user'
-    
+                    error = f'Could not invite user: {str(e)}'
+        
     cur.close()
     conn.close()
     
